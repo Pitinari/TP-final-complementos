@@ -15,9 +15,9 @@ def randomrango(minimo, maximo):
     return numero
 
 
-def randomize_position (lista_nodos, ancho, alto):
+def posiciones_init (lista_nodos, ancho, alto):
     """
-    randomrango :: (list(strings), int, int) -> dict(string: (float, float))
+    posiciones_init :: (list(strings), int, int) -> dict(string: (float, float))
     Parametros:
     lista_nodos:    Lista de los nombres de los nodos
     ancho:          Ancho del canvas
@@ -33,39 +33,34 @@ def randomize_position (lista_nodos, ancho, alto):
         posiciones[nodo] = np.array([randomrango( anchomin , anchomax),randomrango( altomin , altomax)])
     return posiciones
 
-def calculo_repulsion(nodoa, nodob, cantNodos, area, C):
+def calculo_repulsion(nodoa, nodob, k):
     """
     calculo_repulsion :: ((float, float), (float, float), int, int, float) -> (float, float))
     Parametros:
     nodoa:      Coordenadas del nodo A
-    nodob:      Coordenadas del nodo B
-    cantNodos:  Cantidad de nodos
-    area:       Area del canvas           
-    C:          Constante de repulsion
+    nodob:      Coordenadas del nodo B      
+    k:          Constante de repulsion
     Calcula la fuerza de repulsion entre dos nodos
     """
-    delta = nodob - nodoa
-    dist = np.linalg.norm(delta)
-    k = -math.sqrt( area / cantNodos ) * C
+    
+    dif = nodob - nodoa
+    dist = np.linalg.norm(dif)
     fuerza = k*k / dist
-    return delta*(fuerza/dist)
+    return dif*(fuerza/dist)
 
-def calculo_atraccion(nodoa, nodob, cantNodos, area, C):
+def calculo_atraccion(nodoa, nodob, k):
     """
     calculo_atraccion :: ((float, float), (float, float), int, int, float) -> (float, float))
     Parametros:
     nodoa:      Coordenadas del nodo A
     nodob:      Coordenadas del nodo B
-    cantNodos:  Cantidad de nodos
-    area:       Area del canvas           
-    C:          Constante de atraccion
+    k:          Constante de atraccion
     Calcula la fuerza de atraccion entre dos nodos
     """
-    delta = nodob - nodoa
-    dist = np.linalg.norm(delta)
-    k =  math.sqrt( area / cantNodos ) * C
+    dif = nodob - nodoa
+    dist = np.linalg.norm(dif)
     fuerza = dist*dist / k
-    return delta*(fuerza/dist)
+    return dif*(fuerza/dist)
 
 def calculo_gravedad(posicion, G):
     """

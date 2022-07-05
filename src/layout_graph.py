@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import utils
+import math
 
 class LayoutGraph:
 
@@ -40,7 +41,9 @@ class LayoutGraph:
         # Inicializo estado
         # Completar
         self.fuerzas = {}
-        self.posiciones = utils.randomize_position(self.grafo[0], self.ancho, self.alto)
+        self.posiciones = utils.posiciones_init(self.grafo[0], self.ancho, self.alto)
+        self.k_r = -math.sqrt( self.area / len ( self.grafo[0] ) ) * self.c1
+        self.k_a = math.sqrt( self.area / len ( self.grafo[0] ) ) * self.c2
 
         # Guardo opciones
         self.iters = iters
@@ -83,14 +86,17 @@ class LayoutGraph:
         corregir_posiciones :: () -> ()
         Pone las posiciones de un nodo en los bordes si se salieron del area.
         """
-        if self.posiciones[nodo][0] > (self.ancho)/2:
-            self.posiciones[nodo][0] = (self.ancho)/2
-        if self.posiciones[nodo][0] < -(self.ancho)/2:
-            self.posiciones[nodo][0] = -(self.ancho)/2
-        if self.posiciones[nodo][1] > (self.alto)/2:
-            self.posiciones[nodo][1] = (self.alto)/2
-        if self.posiciones[nodo][1] < -(self.alto)/2:
-            self.posiciones[nodo][1] = -(self.alto)/2
+        ancho_lim = (self.ancho)/2
+        alto_lim = (self.alto)/2
+
+        if self.posiciones[nodo][0] > ancho_lim:
+            self.posiciones[nodo][0] = ancho_lim
+        if self.posiciones[nodo][0] < -ancho_lim:
+            self.posiciones[nodo][0] = -ancho_lim
+        if self.posiciones[nodo][1] > alto_lim:
+            self.posiciones[nodo][1] = alto_lim
+        if self.posiciones[nodo][1] < -alto_lim:
+            self.posiciones[nodo][1] = -alto_lim
 
     def graficar (self, iter):
         """
@@ -121,15 +127,15 @@ class LayoutGraph:
             yy2 = self.posiciones[nodob][1]
             plt.plot((xx1, xx2), (yy1, yy2), 'black')
 
-        # Agregamos un titulo
+        # Se agrega un titulo
         plt.title("Temp= " + str( round(self.t) ) + " iter = " + str(iter) )
-        # Fijamos el canvas, agregando un padding del fontsize/50 (fue calculado empiricamente con un ojimetro)
+        # Se fija el canvas
         plt.xlim(-(self.ancho/2 + self.fontsize / 50),(self.ancho/2 + self.fontsize / 50))
         plt.ylim(-(self.alto/2 + self.fontsize / 50),(self.alto/2 + self.fontsize / 50))
         # Elimina los ejes
         if (not self.axes) :
             plt.axis("off") 
-        # Muestra el plot en pantalla
+        
         plt.draw()
 
     def step(self):
@@ -149,8 +155,8 @@ class LayoutGraph:
         for arista in lista_aristas:
             nodoa = arista[0]
             nodob = arista[1]
-            fa = utils.calculo_atraccion(self.posiciones[nodoa], self.posiciones[nodob], cantNodos, self.area, self.c2 )
-            self.fuerzas[nodoa] += fa   # Sumamos la fuerza en un nodo y restamos en el otro, para simular fuerzas con sentido opuesto
+            fa = utils.calculo_atraccion(self.posiciones[nodoa], self.posiciones[nodob], self.k_a )
+            self.fuerzas[nodoa] += fa   # Se suma la fuerza en un nodo y se resta en el otro, para simular fuerzas con sentido opuesto
             self.fuerzas[nodob] -= fa
 
         # computa repulsiones (por nodos)
@@ -158,7 +164,7 @@ class LayoutGraph:
             for j in range ( len( lista_nodos ) - (i+1) ):
                 nodoa = lista_nodos[i]
                 nodob = lista_nodos[ (i+1) + j]
-                fr = utils.calculo_repulsion(self.posiciones[nodoa], self.posiciones[nodob], cantNodos, self.area, self.c1 )
+                fr = utils.calculo_repulsion(self.posiciones[nodoa], self.posiciones[nodob], self.k_r )
                 self.fuerzas[nodoa] -= fr
                 self.fuerzas[nodob] += fr
 
@@ -217,7 +223,7 @@ class LayoutGraph:
             if (iter == self.iters or (self.refresh and iter % self.refresh == 0)):
                 self.graficar(iter)
                 # Tiempo entre cada frame, al ser tan pequeño es limitado por el tiempo de calculo de un step
-                plt.pause(0.0000001)
+                plt.pause(0.00000000001)
             
             # Imprime las informacion por consola si se elegio el modo verbose
             if (self.verbose):
